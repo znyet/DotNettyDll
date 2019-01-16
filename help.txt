@@ -1,0 +1,33 @@
+https://github.com/Azure/DotNetty/
+
+=======================================
+
+DotNetty.Buffers     
+           DotNetty.Buffers 是对内存缓冲区管理的封装。
+
+DotNetty.Codecs   
+          DotNetty.Codecs 是对编解码是封装，包括一些基础基类的实现，我们在项目中自定义的协议，都要继承该项目的特定基类和实现。
+
+DotNetty.Codecs.Mqtt
+          MQTT（消息队列遥测传输）编解码是封装，包括一些基础基类的实现。
+
+DotNetty.Codecs.Protobuf
+         Protobuf 编解码是封装，包括一些基础基类的实现。
+
+DotNetty.Codecs.ProtocolBuffers
+         ProtocolBuffers编解码是封装，包括一些基础基类的实现。
+
+DotNetty.Codecs.Redis
+         Redis 协议编解码是封装，包括一些基础基类的实现。
+
+DotNetty.Common
+         DotNetty.Common 是公共的类库项目，包装线程池，并行任务和常用帮助类的封装。
+
+DotNetty.Handlers
+          DotNetty.Handlers 封装了常用的管道处理器，比如Tls编解码，超时机制，心跳检查，日志等。
+
+DotNetty.Transport
+         DotNetty.Transport 是DotNetty核心的实现，Socket基础框架，通信模式：异步非阻塞。
+
+DotNetty.Transport.Libuv
+         DotNetty.Transport.Libuv是DotNetty自己实现基于Libuv （高性能的，事件驱动的I/O库） 核心的实现。

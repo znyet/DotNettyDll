@@ -2,6 +2,10 @@ https://github.com/Azure/DotNetty/
 
 =======================================
 
+SocketDatagramChannel：针对UDP的管道实现
+TcpServerSocketChannel：针对TCP服务端的管道实现
+TcpSocketChannel：针对TCP客户端的管道实现
+
 https://www.cnblogs.com/SteveLee/p/9860507.html
 
 DotNetty.Buffers： 对内存缓冲区管理的封装。

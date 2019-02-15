@@ -1,0 +1,152 @@
+
+class Program
+{
+	static IEventLoopGroup serverGroup;
+	static IEventLoopGroup workerGroup;
+	static IChannel serverChannel;
+	static ServerBootstrap serverBootstrap;
+	static int port = 8123;
+
+	static void Main(string[] args)
+	{
+		serverBootstrap = new ServerBootstrap();
+		serverGroup = new MultithreadEventLoopGroup(1);
+		//serverGroup = new MultithreadEventLoopGroup(Environment.ProcessorCount / 2);
+		workerGroup = new MultithreadEventLoopGroup();
+		serverBootstrap
+		  .Channel<TcpServerSocketChannel>()
+		  .Group(serverGroup, workerGroup)
+		  .Option(ChannelOption.TcpNodelay, true)
+		  .ChildHandler(new ActionChannelInitializer<IChannel>(channel =>
+		  {
+			  IChannelPipeline pip = channel.Pipeline;
+			  pip.AddLast(new IdleStateHandler(0, 0, 5)); //客户端断电或断网5秒没读写
+			  pip.AddLast(new LengthFieldPrepender(4));
+			  pip.AddLast(new LengthFieldBasedFrameDecoder(int.MaxValue, 0, 4, 0, 4));
+			  pip.AddLast(new EchoHandler());
+
+		  }));
+
+		//serverChannel = serverBootstrap.BindAsync(ipAddress, port).Result;
+		serverChannel = serverBootstrap.BindAsync(port).Result;
+		Console.WriteLine("server start listen in port " + port);
+		Console.ReadKey();
+	}
+}
+
+
+
+using System;
+using System.IO;
+using System.Text;
+using DotNetty.Buffers;
+using DotNetty.Handlers.Timeout;
+using DotNetty.Transport.Channels;
+using DotNetty.Transport.Channels.Groups;
+using Model;
+using ProtoBuf;
+
+namespace Length.Server
+{
+    public class EchoHandler : ChannelHandlerAdapter
+    {
+        //保存所有回话消息
+        static volatile IChannelGroup group;
+
+        //socket connect
+        public override void ChannelActive(IChannelHandlerContext context)
+        {
+            IChannelGroup g = group;
+            if (g == null)
+            {
+                lock (this)
+                {
+                    if (group == null)
+                    {
+                        g = group = new DefaultChannelGroup(context.Executor);
+                    }
+                }
+            }
+            g.Add(context.Channel);
+
+            //发送消息给这个客户端
+            //byte[] msgBytes = Encoding.UTF8.GetBytes("from server message");
+            //IByteBuffer msgIBytes = Unpooled.Buffer().WriteBytes(msgBytes);
+            //context.WriteAndFlushAsync(msgIBytes);
+            //Console.WriteLine("ChannelActive " + context.Channel.Id);
+
+            //广播消息有人进来了
+            //byte[] b1 = Encoding.UTF8.GetBytes("on come to server " + context.Channel.Id);
+            //IByteBuffer b2 = Unpooled.Buffer().WriteBytes(b1);
+            //group.WriteAndFlushAsync(b2, new EveryOneBut(context.Channel.Id));
+        }
+
+        public override void ChannelRead(IChannelHandlerContext context, object message)
+        {
+            IByteBuffer byteBuffer = message as IByteBuffer;
+            //string data = byteBuffer.ToString(Encoding.UTF8);
+            //Console.WriteLine(data);
+
+            using (Stream ms = new ReadOnlyByteBufferStream(byteBuffer, false))
+            {
+                var p = Serializer.Deserialize<People>(ms);
+                Console.WriteLine(p.Name);
+            }
+            Console.WriteLine("ChannelRead " + context.Channel.Id);
+        }
+
+        public override void ChannelReadComplete(IChannelHandlerContext context)
+        {
+
+            Console.WriteLine("ChannelReadComplete " + context.Channel.Id);
+            context.Flush();
+        }
+
+        //socket exception
+        public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
+        {
+            Console.WriteLine("ExceptionCaught " + context.Channel.Id);
+            context.CloseAsync();
+
+        }
+
+        //socket close
+        public override void ChannelInactive(IChannelHandlerContext context)
+        {
+            Console.WriteLine(group.Count);
+            Console.WriteLine("ChannelInactive " + context.Channel.Id);
+        }
+		
+		//异常断网断电 主动去关闭
+        public override void UserEventTriggered(IChannelHandlerContext context, object evt)
+        {
+            if (evt is IdleStateEvent)
+            {
+                var eventState = evt as IdleStateEvent;
+                if (eventState != null)
+                {
+                    context.Channel.CloseAsync();
+                }
+
+            }
+        }
+
+
+        public override bool IsSharable => true;
+
+    }
+
+
+    class EveryOneBut : IChannelMatcher
+    {
+        readonly IChannelId id;
+
+        public EveryOneBut(IChannelId id)
+        {
+            this.id = id;
+        }
+
+        public bool Matches(IChannel channel) => channel.Id != id;
+    }
+
+}

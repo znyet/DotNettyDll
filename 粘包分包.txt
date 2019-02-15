@@ -1,0 +1,9 @@
+https://blog.csdn.net/baiye_xing/article/details/73189191
+https://blog.csdn.net/top_code/article/details/50893302
+
+* LineBasedFrameDecoder  (回车换行结尾)
+* DelimiterBasedFrameDecoder（自定义结尾） 
+* FixedLengthFrameDecoder（消息定长） 
+* LengthFieldBasedFrameDecoder 、LengthFieldPrepender
+
+

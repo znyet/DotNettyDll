@@ -17,23 +17,19 @@ clientChannel.WriteAndFlushAsync(Unpooled.Buffer().WriteBytes(bytes));
 
 2、recive
 
-
 public override void ChannelRead(IChannelHandlerContext context, object message)
 {
 	IByteBuffer byteBuffer = message as IByteBuffer;
 	//string data = byteBuffer.ToString(Encoding.UTF8);
 	//Console.WriteLine(data);
 
-	//using (MemoryStream ms = new MemoryStream())
-	//{
-	//    byte[] bytes = new byte[byteBuffer.ReadableBytes];
-	//    byteBuffer.ReadBytes(bytes);
-	//    ms.Write(bytes, 0, bytes.Length); //将消息写入流中  
-	//    ms.Position = 0; //将流的位置归0  
+	//byte[] bytes = new byte[byteBuffer.ReadableBytes];
+	//byteBuffer.ReadBytes(bytes);
+	//using (Stream ms = new MemoryStream(bytes))
+	//{ 
 	//    var p = Serializer.Deserialize<People>(ms);
 	//    Console.WriteLine(p.Name);
-
-	//   释放资源，这行很关键  
+	//    //释放资源，这行很关键
 	//    byteBuffer.Release();
 	//}
 
